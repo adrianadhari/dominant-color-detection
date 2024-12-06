@@ -1,0 +1,96 @@
+import { useState } from "react";
+import axios from "axios";
+
+function App() {
+  const [originalImage, setOriginalImage] = useState(null);
+  const [segmentedImage, setSegmentedImage] = useState(null);
+  const [dominantColors, setDominantColors] = useState(null);
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setOriginalImage(`data:image/png;base64,${response.data.original_image_base64}`);
+      setSegmentedImage(`data:image/png;base64,${response.data.segmented_image_base64}`);
+      setDominantColors(response.data.dominant_colors);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="p-6 bg-white shadow-lg rounded-lg">
+        <h1 className="text-2xl font-bold text-gray-700 mb-4">
+          Dominant Color Detection
+        </h1>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="block mb-4"
+        />
+        <button
+          onClick={handleSubmit}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Submit
+        </button>
+        <div className="flex space-x-4 mt-4">
+          {originalImage && (
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Original Image</h2>
+              <img
+                src={originalImage}
+                alt="Original"
+                className="w-48 h-48 object-contain border"
+              />
+            </div>
+          )}
+          {segmentedImage && (
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Segmented Image</h2>
+              <img
+                src={segmentedImage}
+                alt="Segmented"
+                className="w-48 h-48 object-contain border"
+              />
+            </div>
+          )}
+          {dominantColors && (
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Dominant Colors</h2>
+              <div className="flex space-x-2">
+                {dominantColors.map((color, index) => (
+                  <div
+                    key={index}
+                    className="w-16 h-16 border"
+                    style={{ backgroundColor: `rgb(${color.join(",")})` }}
+                  />
+                ))}
+              </div>
+              <p className="text-gray-600 mt-2">
+                RGB Values:{" "}
+                {dominantColors.map((color) => color.join(", ")).join(" | ")}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
