@@ -6,6 +6,7 @@ function App() {
   const [segmentedImage, setSegmentedImage] = useState(null);
   const [dominantColors, setDominantColors] = useState(null);
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false); // State untuk loading
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -13,6 +14,8 @@ function App() {
 
   const handleSubmit = async () => {
     if (!file) return;
+
+    setLoading(true); // Aktifkan loading
 
     const formData = new FormData();
     formData.append("image", file);
@@ -27,6 +30,8 @@ function App() {
       setDominantColors(response.data.dominant_colors);
     } catch (error) {
       console.error("Error uploading image:", error);
+    } finally {
+      setLoading(false); // Matikan loading setelah proses selesai
     }
   };
 
@@ -44,10 +49,23 @@ function App() {
         />
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className={`bg-blue-500 text-white px-4 py-2 rounded ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={loading} // Nonaktifkan tombol jika sedang loading
         >
-          Submit
+          {loading ? "Processing..." : "Submit"}
         </button>
+
+        {/* Indikator Loading */}
+        {loading && (
+          <div className="flex justify-center items-center mt-4">
+            <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+            <p className="ml-4 text-gray-600">Processing your image...</p>
+          </div>
+        )}
+
+
         <div className="flex space-x-4 mt-4">
           {originalImage && (
             <div>
