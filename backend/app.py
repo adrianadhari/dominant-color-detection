@@ -7,7 +7,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import base64
 
-# Fungsi untuk segmentasi gambar menggunakan metode GrabCut
+
+# Membuat Fungsi-Fungsi
+# 1. Fungsi untuk segmentasi gambar menggunakan metode GrabCut
 def segment_image(image):
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     _, mask = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY)
@@ -23,13 +25,13 @@ def segment_image(image):
     except Exception:
         return image  # Jika terjadi kesalahan, kembalikan gambar asli
 
-# Fungsi untuk menghitung perbedaan warna menggunakan model CIEDE2000
+# 2. Fungsi untuk menghitung perbedaan warna menggunakan model CIEDE2000
 def color_difference(color1, color2):
     lab1 = LabColor(lab_l=color1[0], lab_a=color1[1], lab_b=color1[2])
     lab2 = LabColor(lab_l=color2[0], lab_a=color2[1], lab_b=color2[2])
     return delta_e_cie2000(lab1, lab2)
 
-# Fungsi untuk menyaring dan mengurutkan warna dominan
+# 3. Fungsi untuk menyaring dan mengurutkan warna dominan
 def filter_and_sort_colors(colors, threshold=10):
     filtered_colors = []
     for color in colors:
@@ -50,18 +52,19 @@ def upload_image():
     image_data = np.frombuffer(file.read(), np.uint8)
     image = cv2.cvtColor(cv2.imdecode(image_data, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
 
-    # Proses segmentasi
+    #Tahap-Tahap
+    # Tahap 1: Proses segmentasi
     segmented_image = segment_image(image)
 
-    # Ambil piksel untuk clustering
+    # Tahap 2: Ambil piksel untuk clustering
     pixels = segmented_image[segmented_image.sum(axis=-1) > 0].reshape((-1, 3)).astype(np.float32)
 
-    # Deteksi warna dominan
+    # Tahap 3: Deteksi warna dominan
     kmeans = KMeans(n_clusters=3, random_state=42).fit(pixels)
     dominant_colors = kmeans.cluster_centers_.astype(int).tolist()
 
-    # Filter warna dominan
-    sorted_colors = dominant_colors
+    # Tahap 4 : Filter warna dominan
+    sorted_colors = filter_and_sort_colors(dominant_colors)
 
     # Konversi gambar ke format base64
     original_image_base64 = base64.b64encode(cv2.imencode('.png', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))[1]).decode('utf-8')
@@ -73,4 +76,4 @@ def upload_image():
         'segmented_image_base64': segmented_image_base64
     })
 
-app.run(host="0.0.0.0", port=5000)
+app.run(host="0.0.0.0", port=5000, threaded=True)
