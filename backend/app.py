@@ -57,7 +57,7 @@ def upload_image():
     pixels = segmented_image[segmented_image.sum(axis=-1) > 0].reshape((-1, 3)).astype(np.float32)
 
     # Deteksi warna dominan
-    kmeans = KMeans(n_clusters=1, random_state=42).fit(pixels)
+    kmeans = KMeans(n_clusters=3, random_state=42).fit(pixels)
     dominant_colors = kmeans.cluster_centers_.astype(int).tolist()
 
     # Filter warna dominan
