@@ -61,7 +61,7 @@ def upload_image():
     dominant_colors = kmeans.cluster_centers_.astype(int).tolist()
 
     # Filter warna dominan
-    sorted_colors = filter_and_sort_colors(dominant_colors)
+    sorted_colors = dominant_colors
 
     # Konversi gambar ke format base64
     original_image_base64 = base64.b64encode(cv2.imencode('.png', cv2.cvtColor(image, cv2.COLOR_RGB2BGR))[1]).decode('utf-8')
@@ -73,5 +73,4 @@ def upload_image():
         'segmented_image_base64': segmented_image_base64
     })
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app.run(host="0.0.0.0", port=5000)

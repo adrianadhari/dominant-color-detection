@@ -18,10 +18,10 @@ function App() {
     setLoading(true); // Aktifkan loading
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("imag e", file);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/upload", formData, {
+      const response = await axios.post("https://pc.adrianadhari.my.id/api/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
